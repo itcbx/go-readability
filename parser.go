@@ -29,6 +29,7 @@ var (
 	rxVideos               = regexp.MustCompile(`(?i)//(www\.)?((dailymotion|youtube|youtube-nocookie|player\.vimeo|v\.qq)\.com|(archive|upload\.wikimedia)\.org|player\.twitch\.tv)`)
 	rxNextLink             = regexp.MustCompile(`(?i)(next|weiter|continue|>([^\|]|$)|»([^\|]|$))`)
 	rxPrevLink             = regexp.MustCompile(`(?i)(prev|earl|old|new|<|«)`)
+	rxTokenize             = regexp.MustCompile(`(?i)\W+`)
 	rxWhitespace           = regexp.MustCompile(`(?i)^\s*$`)
 	rxHasContent           = regexp.MustCompile(`(?i)\S$`)
 	rxHashURL              = regexp.MustCompile(`(?i)^#.+`)
@@ -710,6 +711,44 @@ func (ps *Parser) getNextNode(node *html.Node, ignoreSelfAndKids bool) *html.Nod
 	return nil
 }
 
+// textSimilarity compares second text to first one
+// 1 = same text, 0 = completely different text
+// works the way that it splits both texts into words and then finds words that are unique in second text
+// the result is given by the lower length of unique parts
+func (ps *Parser) textSimilarity(textA, textB string) float64 {
+	filterWhiteSpace := func(a []string) (ret []string) {
+		for i := 0; i < len(a); i++ {
+			if len(a[i]) == 0 {
+				continue
+			}
+			ret = append(ret, a[i])
+		}
+		return
+	}
+	filterDifference := func(a, b []string) (ret []string) {
+		for i := 0; i < len(a); i++ {
+			j := 0
+			for ; j < len(b); j++ {
+				if a[i] == b[j] {
+					break
+				}
+			}
+			if j == len(b) {
+				ret = append(ret, a[i])
+			}
+		}
+		return
+	}
+	tokensA := filterWhiteSpace(rxTokenize.Split(strings.ToLower(textA), -1))
+	tokensB := filterWhiteSpace(rxTokenize.Split(strings.ToLower(textB), -1))
+	if len(tokensA) <= 0 || len(tokensB) <= 0 {
+		return 0
+	}
+	uniqTokensB := filterDifference(tokensB, tokensA)
+	distanceB := float64(len(strings.Join(uniqTokensB, " "))) / float64(len(strings.Join(tokensB, " ")))
+	return 1 - distanceB
+}
+
 // checkByline determines if a node is used as byline.
 func (ps *Parser) checkByline(node *html.Node, matchString string) bool {
 	if ps.articleByline != "" {
@@ -771,6 +810,8 @@ func (ps *Parser) grabArticle() *html.Node {
 		var elementsToScore []*html.Node
 		var node = dom.DocumentElement(doc)
 
+		shouldRemoveTitleHeader := true
+
 		for node != nil {
 			matchString := dom.ClassName(node) + " " + dom.ID(node)
 
@@ -784,6 +825,12 @@ func (ps *Parser) grabArticle() *html.Node {
 			if ps.checkByline(node, matchString) {
 				node = ps.removeAndGetNext(node)
 				continue
+			}
+
+			if (shouldRemoveTitleHeader && ps.headerDuplicatesTitle(node)) {
+				shouldRemoveTitleHeader = false
+				node = ps.removeAndGetNext(node)
+				continue;
 			}
 
 			// Remove unlikely candidates
@@ -2008,6 +2055,22 @@ func (ps *Parser) cleanHeaders(e *html.Node) {
 			return ps.getClassWeight(header) < 0
 		})
 	}
+}
+
+/**
+   * Check if this node is an H1 or H2 element whose content is mostly
+   * the same as the article title.
+   *
+   * @param Element  the node to check.
+   * @return boolean indicating whether this is a title-like header.
+   */
+func (ps *Parser) headerDuplicatesTitle(node *html.Node) bool {
+	nodeTagName := dom.TagName(node)
+	if nodeTagName != "H1" && nodeTagName != "H2" {
+		return false
+	}
+	heading := ps.getInnerText(node, false)
+	return ps.textSimilarity(ps.articleTitle, heading) > 0.75;
 }
 
 // isProbablyVisible determines if a node is visible.
