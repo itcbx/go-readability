@@ -4,8 +4,6 @@ Go-Readability
 [![GoDoc](https://godoc.org/github.com/itcbx/go-readability?status.png)](https://godoc.org/github.com/itcbx/go-readability)
 [![Travis CI](https://travis-ci.org/itcbx/go-readability.svg?branch=master)](https://travis-ci.org/itcbx/go-readability)
 [![Go Report Card](https://goreportcard.com/badge/github.com/itcbx/go-readability)](https://goreportcard.com/report/github.com/itcbx/go-readability)
-[![Donate PayPal](https://img.shields.io/static/v1?label=donate&message=PayPal&color=00457C&logo=paypal)](https://www.paypal.me/RadhiFadlillah)
-[![Donate Ko-fi](https://img.shields.io/static/v1?label=donate&message=Ko-fi&color=F16061&logo=ko-fi)](https://ko-fi.com/radhifadlillah)
 
 Go-Readability is a Go package that find the main readable content and the metadata from a HTML page. It works by removing clutter like buttons, ads, background images, script, etc.
 
@@ -13,7 +11,7 @@ This package is based from [Readability.js](https://github.com/mozilla/readabili
 
 ## Status
 
-This package is stable enough for use and up to date with Readability.js until commit [`290724c`](https://github.com/mozilla/readability/commit/11093f011f57fa528a00a78d70b8d9df32c7a32d).
+This package is stable enough for use and up to date with Readability.js until commit [`28843b6`](https://github.com/mozilla/readability/commit/28843b6de84447dd6cef04058fda336938e628dc).
 
 ## Installation
 
@@ -152,4 +150,4 @@ Flags:
 
 ## Licenses
 
-Go-Readability is distributed under [MIT license](https://choosealicense.com/licenses/mit/), which means you can use and modify it however you want. However, if you make an enhancement for it, if possible, please send a pull request. If you like this project, please consider donating to me either via [PayPal](https://www.paypal.me/RadhiFadlillah) or [Ko-Fi](https://ko-fi.com/radhifadlillah).
+Go-Readability is distributed under [MIT license](https://choosealicense.com/licenses/mit/), which means you can use and modify it however you want. However, if you make an enhancement for it, if possible, please send a pull request.
